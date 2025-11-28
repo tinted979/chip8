@@ -18,9 +18,9 @@ mem_get_byte :: proc(m: ^Memory, a: Address) -> (u8, bool) {
 mem_get_word :: proc(m: ^Memory, a: Address) -> (u16, bool) {
 	assert(m != nil)
 	if !address_is_valid(a) do return 0, false
-	high := u16(m.data[u16(a)])
+	high := u16(m.data[u16(a)]) << 8
 	low := u16(m.data[u16(a) + 1])
-	return (high << 8) | low, true
+	return high | low, true
 }
 
 mem_set_byte :: proc(m: ^Memory, a: Address, v: u8) -> bool {
@@ -33,7 +33,7 @@ mem_set_byte :: proc(m: ^Memory, a: Address, v: u8) -> bool {
 mem_set_word :: proc(m: ^Memory, a: Address, v: u16) -> bool {
 	assert(m != nil)
 	if !address_is_valid(a) do return false
-	m.data[u16(a)] = u8(v)
-	m.data[u16(a) + 1] = u8(v >> 8)
+	m.data[u16(a)] = u8(v >> 8)
+	m.data[u16(a) + 1] = u8(v)
 	return true
 }
