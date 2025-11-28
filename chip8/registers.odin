@@ -1,10 +1,12 @@
 package chip8
 
+REGISTER_COUNT :: 16
+
 Registers :: struct {
-	registers:   [16]u8,
-	index:       Address,
-	delay_timer: u8,
-	sound_timer: u8,
+	dt:        u8,
+	st:        u8,
+	index:     Address,
+	registers: [REGISTER_COUNT]u8,
 }
 
 reg_init :: proc(r: ^Registers) {
@@ -14,11 +16,13 @@ reg_init :: proc(r: ^Registers) {
 
 reg_get :: proc(r: ^Registers, index: u8) -> u8 {
 	assert(r != nil)
+	if index >= REGISTER_COUNT do return 0
 	return r.registers[index]
 }
 
 reg_set :: proc(r: ^Registers, index: u8, value: u8) {
 	assert(r != nil)
+	if index >= REGISTER_COUNT do return
 	r.registers[index] = value
 }
 
@@ -34,20 +38,20 @@ reg_set_index :: proc(r: ^Registers, value: Address) {
 
 reg_get_dt :: proc(r: ^Registers) -> u8 {
 	assert(r != nil)
-	return r.delay_timer
+	return r.dt
 }
 
 reg_set_dt :: proc(r: ^Registers, value: u8) {
 	assert(r != nil)
-	r.delay_timer = value
+	r.dt = value
 }
 
 reg_get_st :: proc(r: ^Registers) -> u8 {
 	assert(r != nil)
-	return r.sound_timer
+	return r.st
 }
 
 reg_set_st :: proc(r: ^Registers, value: u8) {
 	assert(r != nil)
-	r.sound_timer = value
+	r.st = value
 }

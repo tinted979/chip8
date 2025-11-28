@@ -41,11 +41,13 @@ kp_init :: proc(k: ^Keypad) {
 
 kp_get_pressed :: proc(k: ^Keypad, key: u8) -> bool {
 	assert(k != nil)
+	if key >= KEY_COUNT do return false
 	return k.keys[key]
 }
 
 kp_set_pressed :: proc(k: ^Keypad, key: u8, pressed: bool) {
 	assert(k != nil)
+	if key >= KEY_COUNT do return
 	k.keys[key] = pressed
 }
 
