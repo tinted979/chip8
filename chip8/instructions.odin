@@ -290,8 +290,8 @@ DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) {
 		if !ok do continue
 		for col in 0 ..< 8 {
 			if sprite_byte & (0x80 >> u8(col)) != 0 {
-				x := start_x + u8(col) % DISPLAY_WIDTH
-				y := start_y + u8(row) % DISPLAY_HEIGHT
+				x := (start_x + u8(col)) % DISPLAY_WIDTH
+				y := (start_y + u8(row)) % DISPLAY_HEIGHT
 				idx := u16(y) * DISPLAY_WIDTH + u16(x)
 
 				if c.display[idx] == 0xFFFFFFFF {
