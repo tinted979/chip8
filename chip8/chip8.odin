@@ -33,7 +33,10 @@ cycle :: proc(c: ^Chip8) {
 
 	pc_advance(&c.pc)
 	INSTRUCTIONS[opcode_category(Opcode(opcode))](c, Opcode(opcode))
+}
 
+update_timers :: proc(c: ^Chip8) {
+	assert(c != nil)
 	dt := reg_get_dt(&c.registers)
 	st := reg_get_st(&c.registers)
 	if dt > 0 do reg_set_dt(&c.registers, dt - 1)
@@ -61,7 +64,9 @@ load_rom :: proc(c: ^Chip8, path: string) -> bool {
 	reset(c)
 
 	data, success := os.read_entire_file(path)
-	if !success do return false
+	if !success {
+		return false
+	}
 	defer delete(data)
 
 	for b, i in data {

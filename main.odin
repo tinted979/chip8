@@ -25,14 +25,12 @@ main :: proc() {
 		sdl2.WINDOW_SHOWN,
 	)
 	if window == nil {
-		fmt.println("Failed to create window")
 		return
 	}
 	defer sdl2.DestroyWindow(window)
 
 	renderer := sdl2.CreateRenderer(window, -1, sdl2.RENDERER_ACCELERATED)
 	if renderer == nil {
-		fmt.println("Failed to create renderer")
 		return
 	}
 	defer sdl2.DestroyRenderer(renderer)
@@ -45,7 +43,6 @@ main :: proc() {
 		chip8.DISPLAY_HEIGHT,
 	)
 	if texture == nil {
-		fmt.println("Failed to create texture")
 		return
 	}
 	defer sdl2.DestroyTexture(texture)
@@ -55,7 +52,6 @@ main :: proc() {
 
 	success := chip8.load_rom(c, "roms/tetris.ch8")
 	if !success {
-		fmt.println("Failed to load ROM")
 		return
 	}
 
@@ -89,6 +85,8 @@ main :: proc() {
 		for _ in 0 ..< CYCLES_PER_FRAME {
 			chip8.cycle(c)
 		}
+
+		chip8.update_timers(c)
 
 		sdl2.UpdateTexture(
 			texture,
