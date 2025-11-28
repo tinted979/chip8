@@ -4,11 +4,11 @@ import "core:fmt"
 import "core:os"
 
 Chip8 :: struct {
+	pc:         ProgramCounter,
 	keypad:     Keypad,
 	stack:      Stack,
 	memory:     Memory,
 	registers:  Registers,
-	pc:         ProgramCounter,
 	display:    [DISPLAY_WIDTH * DISPLAY_HEIGHT]u32,
 	rom_loaded: bool,
 }
@@ -24,12 +24,15 @@ destroy :: proc(c: ^Chip8) {
 }
 
 cycle :: proc(c: ^Chip8) {
+	assert(c != nil)
+
 	if !c.rom_loaded do return
 
-	opcode := Opcode(mem_get_word(&c.memory, pc_get(&c.pc)))
+	opcode, ok := mem_get_word(&c.memory, pc_to_address(c.pc))
+	if !ok do return
 
 	pc_advance(&c.pc)
-	INSTRUCTIONS[op_major(opcode)](c, opcode)
+	INSTRUCTIONS[opcode_category(Opcode(opcode))](c, Opcode(opcode))
 
 	dt := reg_get_dt(&c.registers)
 	st := reg_get_st(&c.registers)
@@ -38,30 +41,32 @@ cycle :: proc(c: ^Chip8) {
 }
 
 reset :: proc(c: ^Chip8) {
+	assert(c != nil)
 	c^ = Chip8{}
-	pc_set(&c.pc, PROGRAM_START)
-	mem_init(&c.memory)
+	pc_set(&c.pc, address_to_pc(PROGRAM_START_ADDRESS))
+
 	stack_init(&c.stack)
-	kp_init(&c.keypad)
 	reg_init(&c.registers)
+	mem_init(&c.memory)
+	kp_init(&c.keypad)
 
 	for b, i in FONTSET {
-		mem_set_byte(&c.memory, u16(FONTSET_START + i), b)
+		address := FONT_START_ADDRESS + Address(i)
+		if !mem_set_byte(&c.memory, address, b) do continue
 	}
 }
 
 load_rom :: proc(c: ^Chip8, path: string) -> bool {
+	assert(c != nil)
 	reset(c)
 
 	data, success := os.read_entire_file(path)
-	if !success {
-		fmt.println("Failed to load ROM: ", path)
-		return false
-	}
+	if !success do return false
 	defer delete(data)
 
 	for b, i in data {
-		mem_set_byte(&c.memory, u16(PROGRAM_START + i), b)
+		address := PROGRAM_START_ADDRESS + Address(i)
+		if !mem_set_byte(&c.memory, address, b) do continue
 	}
 
 	c.rom_loaded = true

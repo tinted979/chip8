@@ -33,16 +33,19 @@ Keypad :: struct {
 }
 
 kp_init :: proc(k: ^Keypad) {
+	assert(k != nil)
 	k.keys = [?]bool {
 		0 ..< len(k.keys) = false,
 	}
 }
 
 kp_get_pressed :: proc(k: ^Keypad, key: u8) -> bool {
+	assert(k != nil)
 	return k.keys[key]
 }
 
 kp_set_pressed :: proc(k: ^Keypad, key: u8, pressed: bool) {
+	assert(k != nil)
 	k.keys[key] = pressed
 }
 
