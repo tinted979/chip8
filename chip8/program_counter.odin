@@ -14,12 +14,12 @@ program_counter_skip :: proc(pc: ^ProgramCounter, value: ProgramCounter) {
 
 program_counter_advance :: proc(pc: ^ProgramCounter) {
 	assert(pc != nil)
-	pc^ += ProgramCounter(2)
+	pc^ += 2
 }
 
 program_counter_return :: proc(pc: ^ProgramCounter) {
 	assert(pc != nil)
-	pc^ -= ProgramCounter(2)
+	pc^ -= 2
 }
 
 program_counter_to_address :: proc(pc: ProgramCounter) -> Address {

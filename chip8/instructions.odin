@@ -231,7 +231,7 @@ ADD_VX_VY :: proc(c: ^Chip8, op: Opcode) -> Error {
 	vx := registers_get(&c.registers, op_x) or_return
 	vy := registers_get(&c.registers, op_y) or_return
 	result := u16(vx) + u16(vy)
-	registers_set(&c.registers, 0xF, result > 0xFF ? 1 : 0) or_return
+	registers_set(&c.registers, .VF, result > 0xFF ? 1 : 0) or_return
 	registers_set(&c.registers, op_x, u8(result & 0xFF)) or_return
 	return .None
 }
@@ -242,7 +242,7 @@ SUB_VX_VY :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x, op_y := opcode_x(op), opcode_y(op)
 	vx := registers_get(&c.registers, op_x) or_return
 	vy := registers_get(&c.registers, op_y) or_return
-	registers_set(&c.registers, 0xF, vx > vy ? 1 : 0) or_return
+	registers_set(&c.registers, .VF, vx > vy ? 1 : 0) or_return
 	registers_set(&c.registers, op_x, vx - vy) or_return
 	return .None
 }
@@ -252,7 +252,7 @@ SHR_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set(&c.registers, 0xF, vx & 1) or_return
+	registers_set(&c.registers, .VF, vx & 1) or_return
 	registers_set(&c.registers, op_x, vx >> 1) or_return
 	return .None
 }
@@ -263,7 +263,7 @@ SUBN_VX_VY :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x, op_y := opcode_x(op), opcode_y(op)
 	vx := registers_get(&c.registers, op_x) or_return
 	vy := registers_get(&c.registers, op_y) or_return
-	registers_set(&c.registers, 0xF, vy > vx ? 1 : 0) or_return
+	registers_set(&c.registers, .VF, vy > vx ? 1 : 0) or_return
 	registers_set(&c.registers, op_x, vy - vx) or_return
 	return .None
 }
@@ -273,7 +273,7 @@ SHL_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set(&c.registers, 0xF, (vx & 0x80) >> 7) or_return
+	registers_set(&c.registers, .VF, (vx & 0x80) >> 7) or_return
 	registers_set(&c.registers, op_x, vx << 1) or_return
 	return .None
 }
@@ -299,7 +299,7 @@ LD_I_NNN :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Jump to NNN + V0 (0xBNNN - JP V0, NNN)
 JP_V0_NNN :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	v0 := registers_get(&c.registers, 0) or_return
+	v0 := registers_get(&c.registers, .V0) or_return
 	op_nnn := opcode_nnn(op)
 	pc := program_counter_from_address(op_nnn + Address(v0))
 	program_counter_set(&c.pc, pc)
@@ -319,7 +319,7 @@ RND_VX_KK :: proc(c: ^Chip8, op: Opcode) -> Error {
 DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	index := registers_get_index(&c.registers) or_return
+	index := registers_get_index_register(&c.registers) or_return
 	vx := registers_get(&c.registers, op_x) or_return
 	vy := registers_get(&c.registers, op_y) or_return
 	start_x := vx % DISPLAY_WIDTH
@@ -344,7 +344,7 @@ DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) -> Error {
 		}
 	}
 
-	registers_set(&c.registers, 0xF, collision ? 1 : 0) or_return
+	registers_set(&c.registers, .VF, collision ? 1 : 0) or_return
 	return .None
 }
 
@@ -371,7 +371,7 @@ SKNP_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Load value of delay timer into Vx (0xFX07 - LD Vx, DT)
 LD_VX_DT :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	dt := registers_get_dt(&c.registers) or_return
+	dt := registers_get_delay_timer(&c.registers) or_return
 	op_x := opcode_x(op)
 	registers_set(&c.registers, op_x, dt) or_return
 	return .None
@@ -397,7 +397,7 @@ LD_DT_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set_dt(&c.registers, vx) or_return
+	registers_set_delay_timer(&c.registers, vx) or_return
 	return .None
 }
 
@@ -406,7 +406,7 @@ LD_ST_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set_st(&c.registers, vx) or_return
+	registers_set_sound_timer(&c.registers, vx) or_return
 	return .None
 }
 
@@ -415,7 +415,7 @@ ADD_I_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	index := registers_get_index(&c.registers) or_return
+	index := registers_get_index_register(&c.registers) or_return
 	registers_set_index(&c.registers, index + Address(vx)) or_return
 	return .None
 }
@@ -435,7 +435,7 @@ LD_B_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	index := registers_get_index(&c.registers) or_return
+	index := registers_get_index_register(&c.registers) or_return
 	memory_set_byte(&c.memory, index + 2, vx % 10) or_return
 	vx /= 10
 	memory_set_byte(&c.memory, index + 1, vx % 10) or_return
@@ -447,11 +447,11 @@ LD_B_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Store V0 to Vx in memory starting at location I (0xFX55 - LD [I], Vx)
 LD_I_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	index := registers_get_index(&c.registers) or_return
+	index := registers_get_index_register(&c.registers) or_return
 	op_x := opcode_x(op)
-	for i in 0 ..= op_x {
-		value := registers_get(&c.registers, i) or_return
-		memory_set_byte(&c.memory, index + Address(i), value) or_return
+	for register in Register.V0 ..= op_x {
+		value := registers_get(&c.registers, register) or_return
+		memory_set_byte(&c.memory, index + Address(register_to_u8(register)), value) or_return
 	}
 	return .None
 }
@@ -459,11 +459,11 @@ LD_I_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Load memory starting at location I into V0 to Vx (0xFX65 - LD Vx, [I])
 LD_VX_I :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	index := registers_get_index(&c.registers) or_return
+	index := registers_get_index_register(&c.registers) or_return
 	op_x := opcode_x(op)
-	for i in 0 ..= op_x {
-		value := memory_get_byte(&c.memory, index + Address(i)) or_continue
-		registers_set(&c.registers, i, value) or_return
+	for register in Register.V0 ..= op_x {
+		value := memory_get_byte(&c.memory, index + Address(register_to_u8(register))) or_continue
+		registers_set(&c.registers, register, value) or_return
 	}
 	return .None
 }
