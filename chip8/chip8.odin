@@ -37,8 +37,8 @@ reset :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
 	c^ = Chip8{}
 	program_counter_set(&c.pc, program_counter_from_address(PROGRAM_START_ADDRESS))
-	stack_init(&c.stack) or_return
-	registers_init(&c.registers) or_return
+	stack_init(&c.stack)
+	registers_init(&c.registers)
 	memory_init(&c.memory) or_return
 	keypad_init(&c.keypad) or_return
 	load_fontset(c) or_return

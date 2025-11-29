@@ -5,10 +5,9 @@ Stack :: struct {
 	data:    [STACK_SIZE]ProgramCounter,
 }
 
-stack_init :: proc(s: ^Stack) -> Error {
+stack_init :: proc(s: ^Stack) {
 	assert(s != nil)
 	s^ = Stack{}
-	return .None
 }
 
 stack_push :: proc(s: ^Stack, value: ProgramCounter) -> Error {
@@ -35,6 +34,5 @@ is_empty :: proc(s: ^Stack) -> bool {
 @(private)
 is_full :: proc(s: ^Stack) -> bool {
 	assert(s != nil)
-
 	return s.pointer >= STACK_SIZE
 }

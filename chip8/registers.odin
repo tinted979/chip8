@@ -28,30 +28,26 @@ Registers :: struct {
 	registers:      [REGISTER_COUNT]u8,
 }
 
-registers_init :: proc(r: ^Registers) -> Error {
+registers_init :: proc(r: ^Registers) {
 	assert(r != nil)
 	r^ = Registers{}
 	timer_init(&r.delay_timer)
 	timer_init(&r.sound_timer)
-	return .None
 }
 
-registers_get :: proc(r: ^Registers, register: Register) -> (result: u8, error: Error) {
+registers_get :: proc(r: ^Registers, register: Register) -> u8 {
 	assert(r != nil)
-	register_is_valid(register) or_return
-	return r.registers[register], .None
+	return r.registers[register]
 }
 
-registers_set :: proc(r: ^Registers, register: Register, value: u8) -> Error {
+registers_set :: proc(r: ^Registers, register: Register, value: u8) {
 	assert(r != nil)
-	register_is_valid(register) or_return
 	r.registers[register] = value
-	return .None
 }
 
-registers_get_index_register :: proc(r: ^Registers) -> (Address, Error) {
+registers_get_index :: proc(r: ^Registers) -> Address {
 	assert(r != nil)
-	return r.index_register, .None
+	return r.index_register
 }
 
 registers_set_index :: proc(r: ^Registers, value: Address) -> Error {
@@ -65,6 +61,7 @@ register_to_u8 :: proc(register: Register) -> u8 {
 	return u8(register)
 }
 
-register_is_valid :: proc(register: Register) -> Error {
-	return register_to_u8(register) < REGISTER_COUNT ? .None : .InvalidRegister
+register_from_u8 :: proc(value: u8) -> (Register, Error) {
+	if value >= REGISTER_COUNT do return {}, .InvalidRegister
+	return Register(value), .None
 }
