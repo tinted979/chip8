@@ -58,7 +58,7 @@ init :: proc(title: string, width, height, scale: i32) -> (Platform, PlatformErr
 
 	// Create window.
 	window := sdl2.CreateWindow(
-		strings.clone_to_cstring(title),
+		strings.clone_to_cstring(title, context.temp_allocator),
 		sdl2.WINDOWPOS_UNDEFINED,
 		sdl2.WINDOWPOS_UNDEFINED,
 		width * scale,

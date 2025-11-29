@@ -2,8 +2,8 @@ package main
 
 import "chip8"
 import "core:fmt"
+import "core:mem"
 import "core:time"
-
 import "platform"
 
 VIDEO_SCALE :: 20
@@ -11,6 +11,23 @@ TARGET_FPS :: 60
 CYCLES_PER_FRAME :: 9
 
 main :: proc() {
+	when ODIN_DEBUG {
+		track: mem.Tracking_Allocator
+		mem.tracking_allocator_init(&track, context.allocator)
+		context.allocator = mem.tracking_allocator(&track)
+
+		defer {
+			if len(track.allocation_map) > 0 {
+				fmt.println(len(track.allocation_map), "allocations not freed")
+				for _, entry in track.allocation_map {
+					fmt.println(entry.size, "bytes at", entry.location)
+				}
+			}
+
+			mem.tracking_allocator_destroy(&track)
+		}
+	}
+
 	// Initialize platform.
 	platform_instance, error := platform.init(
 		"Chip-8",
