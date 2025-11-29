@@ -1,6 +1,5 @@
 package chip8
 
-import "core:fmt"
 import "core:os"
 
 Chip8 :: struct {
@@ -25,14 +24,12 @@ destroy :: proc(c: ^Chip8) {
 
 cycle :: proc(c: ^Chip8) {
 	assert(c != nil)
-
 	if !c.rom_loaded do return
-
-	opcode, ok := memory_get_word(&c.memory, program_counter_to_address(c.pc))
+	raw_opcode, ok := memory_get_word(&c.memory, program_counter_to_address(c.pc))
 	if !ok do return
-
+	opcode := Opcode(raw_opcode)
 	program_counter_advance(&c.pc)
-	INSTRUCTIONS[opcode_category(Opcode(opcode))](c, Opcode(opcode))
+	INSTRUCTIONS[opcode_category(opcode)](c, opcode)
 }
 
 update_timers :: proc(c: ^Chip8) {
@@ -47,33 +44,32 @@ reset :: proc(c: ^Chip8) {
 	assert(c != nil)
 	c^ = Chip8{}
 	program_counter_set(&c.pc, program_counter_from_address(PROGRAM_START_ADDRESS))
-
 	stack_init(&c.stack)
 	registers_init(&c.registers)
 	memory_init(&c.memory)
 	keypad_init(&c.keypad)
-
-	for b, i in FONTSET {
-		address := FONT_START_ADDRESS + Address(i)
-		if !memory_set_byte(&c.memory, address, b) do continue
-	}
+	if !load_fontset(c) do return
 }
 
 load_rom :: proc(c: ^Chip8, path: string) -> bool {
 	assert(c != nil)
 	reset(c)
-
-	data, success := os.read_entire_file(path)
-	if !success {
-		return false
-	}
+	data, ok := os.read_entire_file(path)
+	if !ok do return false
 	defer delete(data)
-
 	for b, i in data {
 		address := PROGRAM_START_ADDRESS + Address(i)
-		if !memory_set_byte(&c.memory, address, b) do continue
+		if !memory_set_byte(&c.memory, address, b) do return false
 	}
-
 	c.rom_loaded = true
+	return true
+}
+
+load_fontset :: proc(c: ^Chip8) -> bool {
+	assert(c != nil)
+	for b, i in FONTSET {
+		address := FONT_START_ADDRESS + Address(i)
+		if !memory_set_byte(&c.memory, address, b) do return false
+	}
 	return true
 }
