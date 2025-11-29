@@ -28,10 +28,8 @@ cycle :: proc(c: ^Chip8) -> Error {
 
 update_timers :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
-	dt := registers_get_delay_timer(&c.registers) or_return
-	st := registers_get_sound_timer(&c.registers) or_return
-	if dt > 0 do registers_set_delay_timer(&c.registers, dt - 1) or_return
-	if st > 0 do registers_set_sound_timer(&c.registers, st - 1) or_return
+	timer_decrement(&c.registers.delay_timer)
+	timer_decrement(&c.registers.sound_timer)
 	return .None
 }
 

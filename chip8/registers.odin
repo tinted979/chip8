@@ -18,20 +18,12 @@ Register :: enum u8 {
 	VC = 0xC,
 	VD = 0xD,
 	VE = 0xE,
-	VF = 0xF, // Carry flag register
-}
-
-register_to_u8 :: proc(register: Register) -> u8 {
-	return u8(register)
-}
-
-register_is_valid :: proc(register: Register) -> Error {
-	return register_to_u8(register) < REGISTER_COUNT ? .None : .InvalidRegister
+	VF = 0xF,
 }
 
 Registers :: struct {
-	delay_timer:    u8,
-	sound_timer:    u8,
+	delay_timer:    Timer,
+	sound_timer:    Timer,
 	index_register: Address,
 	registers:      [REGISTER_COUNT]u8,
 }
@@ -39,6 +31,8 @@ Registers :: struct {
 registers_init :: proc(r: ^Registers) -> Error {
 	assert(r != nil)
 	r^ = Registers{}
+	timer_init(&r.delay_timer)
+	timer_init(&r.sound_timer)
 	return .None
 }
 
@@ -67,24 +61,10 @@ registers_set_index :: proc(r: ^Registers, value: Address) -> Error {
 	return .None
 }
 
-registers_get_delay_timer :: proc(r: ^Registers) -> (u8, Error) {
-	assert(r != nil)
-	return r.delay_timer, .None
+register_to_u8 :: proc(register: Register) -> u8 {
+	return u8(register)
 }
 
-registers_set_delay_timer :: proc(r: ^Registers, value: u8) -> Error {
-	assert(r != nil)
-	r.delay_timer = value
-	return .None
-}
-
-registers_get_sound_timer :: proc(r: ^Registers) -> (u8, Error) {
-	assert(r != nil)
-	return r.sound_timer, .None
-}
-
-registers_set_sound_timer :: proc(r: ^Registers, value: u8) -> Error {
-	assert(r != nil)
-	r.sound_timer = value
-	return .None
+register_is_valid :: proc(register: Register) -> Error {
+	return register_to_u8(register) < REGISTER_COUNT ? .None : .InvalidRegister
 }

@@ -371,9 +371,9 @@ SKNP_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Load value of delay timer into Vx (0xFX07 - LD Vx, DT)
 LD_VX_DT :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	dt := registers_get_delay_timer(&c.registers) or_return
+	dt := timer_get(&c.registers.delay_timer)
 	op_x := opcode_x(op)
-	registers_set(&c.registers, op_x, dt) or_return
+	registers_set(&c.registers, op_x, timer_to_u8(dt)) or_return
 	return .None
 }
 
@@ -397,7 +397,7 @@ LD_DT_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set_delay_timer(&c.registers, vx) or_return
+	timer_set(&c.registers.delay_timer, timer_from_u8(vx))
 	return .None
 }
 
@@ -406,7 +406,7 @@ LD_ST_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x) or_return
-	registers_set_sound_timer(&c.registers, vx) or_return
+	timer_set(&c.registers.sound_timer, timer_from_u8(vx))
 	return .None
 }
 
