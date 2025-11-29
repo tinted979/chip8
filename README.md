@@ -22,5 +22,5 @@ TODO
 This project is licensed under the MIT License - see the LICENSE.md file for details
 
 ## References
-Steps have been taken to verify implementation details where confusion exists with used references. Not to say it is perfect or flawless.
+Steps have been taken to verify implementation details where confusion exists with used references. Not to say it is perfect.
 * [Cowgod's Chip-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.1)
