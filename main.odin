@@ -46,8 +46,7 @@ main :: proc() {
 	defer free(chip_instance)
 
 	// Load ROM.
-	ok := chip8.load_rom(chip_instance, "roms/Brix.ch8")
-	if !ok {
+	if error := chip8.load_rom(chip_instance, "roms/Brix.ch8"); error != .None {
 		fmt.println("Failed to load ROM")
 		return
 	}
@@ -80,9 +79,15 @@ main :: proc() {
 
 		// Cycle chip.
 		for _ in 0 ..< CYCLES_PER_FRAME {
-			chip8.cycle(chip_instance)
+			if error := chip8.cycle(chip_instance); error != .None {
+				fmt.println("Failed to cycle chip")
+				return
+			}
 		}
-		chip8.update_timers(chip_instance)
+		if error := chip8.update_timers(chip_instance); error != .None {
+			fmt.println("Failed to update timers")
+			return
+		}
 
 		// Update platform display buffer.
 		error := platform.update(&platform_instance, chip_instance.display[:])

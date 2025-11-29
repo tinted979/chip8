@@ -5,24 +5,25 @@ Stack :: struct {
 	data:    [STACK_SIZE]ProgramCounter,
 }
 
-stack_init :: proc(s: ^Stack) {
+stack_init :: proc(s: ^Stack) -> Error {
 	assert(s != nil)
 	s^ = Stack{}
+	return .None
 }
 
-stack_push :: proc(s: ^Stack, value: ProgramCounter) -> bool {
+stack_push :: proc(s: ^Stack, value: ProgramCounter) -> Error {
 	assert(s != nil)
-	if stack_is_full(s) do return false
+	if stack_is_full(s) do return .StackOverflow
 	s.data[s.pointer] = value
 	s.pointer += 1
-	return true
+	return .None
 }
 
-stack_pop :: proc(s: ^Stack) -> (ProgramCounter, bool) {
+stack_pop :: proc(s: ^Stack) -> (ProgramCounter, Error) {
 	assert(s != nil)
-	if stack_is_empty(s) do return ProgramCounter(0), false
+	if stack_is_empty(s) do return ProgramCounter(0), .StackUnderflow
 	s.pointer -= 1
-	return s.data[s.pointer], true
+	return s.data[s.pointer], .None
 }
 
 stack_is_empty :: proc(s: ^Stack) -> bool {

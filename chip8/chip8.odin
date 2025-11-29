@@ -12,63 +12,65 @@ Chip8 :: struct {
 	rom_loaded: bool,
 }
 
-cycle :: proc(c: ^Chip8) {
+cycle :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
-	if !c.rom_loaded do return
-	raw_opcode, ok := memory_get_word(&c.memory, program_counter_to_address(c.pc))
-	if !ok do return
+
+	if !c.rom_loaded do return .RomNotLoaded
+
+	raw_opcode := memory_get_word(&c.memory, program_counter_to_address(c.pc)) or_return
 	opcode := Opcode(raw_opcode)
+
 	program_counter_advance(&c.pc)
-	INSTRUCTIONS[opcode_category(opcode)](c, opcode)
+	INSTRUCTIONS[opcode_category(opcode)](c, opcode) or_return
+
+	return .None
 }
 
-update_timers :: proc(c: ^Chip8) {
+update_timers :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
-	dt := registers_get_dt(&c.registers)
-	st := registers_get_st(&c.registers)
-	if dt > 0 do registers_set_dt(&c.registers, dt - 1)
-	if st > 0 do registers_set_st(&c.registers, st - 1)
+	dt := registers_get_dt(&c.registers) or_return
+	st := registers_get_st(&c.registers) or_return
+	if dt > 0 do registers_set_dt(&c.registers, dt - 1) or_return
+	if st > 0 do registers_set_st(&c.registers, st - 1) or_return
+	return .None
 }
 
-reset :: proc(c: ^Chip8) {
+reset :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
 	c^ = Chip8{}
 	program_counter_set(&c.pc, program_counter_from_address(PROGRAM_START_ADDRESS))
-	stack_init(&c.stack)
-	registers_init(&c.registers)
-	memory_init(&c.memory)
-	keypad_init(&c.keypad)
-	if !load_fontset(c) do return
+	stack_init(&c.stack) or_return
+	registers_init(&c.registers) or_return
+	memory_init(&c.memory) or_return
+	keypad_init(&c.keypad) or_return
+	load_fontset(c) or_return
+	return .None
 }
 
-load_rom :: proc(c: ^Chip8, path: string) -> bool {
+load_rom :: proc(c: ^Chip8, path: string) -> Error {
 	assert(c != nil)
 	reset(c)
 
-	// Read ROM file.
 	data, ok := os.read_entire_file(path)
-	if !ok do return false
+	if !ok do return .RomLoadFailed
 	defer delete(data)
 
-	// Check if ROM is too large.
-	if len(data) > int(MEMORY_SIZE - PROGRAM_START_ADDRESS) do return false
+	if len(data) > int(MEMORY_SIZE - PROGRAM_START_ADDRESS) do return .RomTooLarge
 
-	// Write ROM to memory.
 	for b, i in data {
 		address := PROGRAM_START_ADDRESS + Address(i)
-		if !memory_set_byte(&c.memory, address, b) do return false
+		memory_set_byte(&c.memory, address, b) or_return
 	}
 
-	// Set ROM loaded flag.
 	c.rom_loaded = true
-	return true
+	return .None
 }
 
-load_fontset :: proc(c: ^Chip8) -> bool {
+load_fontset :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
 	for b, i in FONTSET {
 		address := FONT_START_ADDRESS + Address(i)
-		if !memory_set_byte(&c.memory, address, b) do return false
+		memory_set_byte(&c.memory, address, b) or_return
 	}
-	return true
+	return .None
 }
