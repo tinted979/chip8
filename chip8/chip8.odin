@@ -44,13 +44,22 @@ reset :: proc(c: ^Chip8) {
 load_rom :: proc(c: ^Chip8, path: string) -> bool {
 	assert(c != nil)
 	reset(c)
+
+	// Read ROM file.
 	data, ok := os.read_entire_file(path)
 	if !ok do return false
 	defer delete(data)
+
+	// Check if ROM is too large.
+	if len(data) > int(MEMORY_SIZE - PROGRAM_START_ADDRESS) do return false
+
+	// Write ROM to memory.
 	for b, i in data {
 		address := PROGRAM_START_ADDRESS + Address(i)
 		if !memory_set_byte(&c.memory, address, b) do return false
 	}
+
+	// Set ROM loaded flag.
 	c.rom_loaded = true
 	return true
 }

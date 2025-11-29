@@ -34,6 +34,12 @@ MATH_INSTRUCTIONS := [0xE + 1]Instruction {
 	0x5 = SUB_VX_VY,
 	0x6 = SHR_VX,
 	0x7 = SUBN_VX_VY,
+	0x8 = OP_NULL,
+	0x9 = OP_NULL,
+	0xA = OP_NULL,
+	0xB = OP_NULL,
+	0xC = OP_NULL,
+	0xD = OP_NULL,
 	0xE = SHL_VX,
 }
 
@@ -384,11 +390,11 @@ LD_B_VX :: proc(c: ^Chip8, op: Opcode) {
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x)
 	index := registers_get_index(&c.registers)
-	memory_set_byte(&c.memory, index + 2, vx % 10)
+	if !memory_set_byte(&c.memory, index + 2, vx % 10) do return
 	vx /= 10
-	memory_set_byte(&c.memory, index + 1, vx % 10)
+	if !memory_set_byte(&c.memory, index + 1, vx % 10) do return
 	vx /= 10
-	memory_set_byte(&c.memory, index, vx % 10)
+	if !memory_set_byte(&c.memory, index, vx % 10) do return
 }
 
 // Store V0 to Vx in memory starting at location I (0xFX55 - LD [I], Vx)
@@ -397,7 +403,7 @@ LD_I_VX :: proc(c: ^Chip8, op: Opcode) {
 	index := registers_get_index(&c.registers)
 	op_x := opcode_x(op)
 	for i in 0 ..= op_x {
-		memory_set_byte(&c.memory, index + Address(i), registers_get(&c.registers, i))
+		if !memory_set_byte(&c.memory, index + Address(i), registers_get(&c.registers, i)) do break
 	}
 }
 
