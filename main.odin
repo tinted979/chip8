@@ -59,7 +59,7 @@ main :: proc() {
 
 		// Poll events.
 		event: platform.Event
-		for platform.poll_event(&platform_instance, &event) {
+		for platform.event_poll(&platform_instance, &event) {
 			#partial switch event.type {
 			case .QUIT:
 				running = false
