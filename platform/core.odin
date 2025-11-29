@@ -22,6 +22,10 @@ Key :: enum u8 {
 	KEY_F = 0xF,
 }
 
+key_to_u8 :: proc(key: Key) -> u8 {
+	return u8(key)
+}
+
 EventType :: enum {
 	NONE,
 	QUIT,

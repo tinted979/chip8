@@ -1,12 +1,5 @@
 package chip8
 
-import "vendor:sdl2"
-
-KeyMapping :: struct {
-	sdl_key:   sdl2.Keycode,
-	chip8_key: u8,
-}
-
 Keypad :: struct {
 	keys: [KEY_COUNT]bool,
 }
@@ -33,15 +26,6 @@ keypad_set_all_pressed :: proc(k: ^Keypad, pressed: bool) {
 	for &key in k.keys {
 		key = pressed
 	}
-}
-
-keypad_get_mapping :: proc(key: sdl2.Keycode) -> (u8, bool) {
-	for mapping in KEY_MAPPINGS {
-		if mapping.sdl_key == key {
-			return mapping.chip8_key, true
-		}
-	}
-	return 0, false
 }
 
 keypad_is_key_valid :: proc(key: u8) -> bool {

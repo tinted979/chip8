@@ -64,9 +64,17 @@ main :: proc() {
 			case .QUIT:
 				running = false
 			case .KEY_DOWN:
-				chip8.keypad_set_pressed(&chip_instance.keypad, u8(event.key), true)
+				chip8.keypad_set_pressed(
+					&chip_instance.keypad,
+					platform.key_to_u8(event.key),
+					true,
+				)
 			case .KEY_UP:
-				chip8.keypad_set_pressed(&chip_instance.keypad, u8(event.key), false)
+				chip8.keypad_set_pressed(
+					&chip_instance.keypad,
+					platform.key_to_u8(event.key),
+					false,
+				)
 			}
 		}
 
