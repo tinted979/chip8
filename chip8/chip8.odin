@@ -12,16 +12,6 @@ Chip8 :: struct {
 	rom_loaded: bool,
 }
 
-create :: proc() -> ^Chip8 {
-	c := new(Chip8)
-	reset(c)
-	return c
-}
-
-destroy :: proc(c: ^Chip8) {
-	free(c)
-}
-
 cycle :: proc(c: ^Chip8) {
 	assert(c != nil)
 	if !c.rom_loaded do return

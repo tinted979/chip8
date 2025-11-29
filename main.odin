@@ -3,7 +3,6 @@ package main
 import "chip8"
 import "core:fmt"
 import "core:time"
-import "vendor:sdl2"
 
 import "platform"
 
@@ -12,51 +11,62 @@ TARGET_FPS :: 60
 CYCLES_PER_FRAME :: 9
 
 main :: proc() {
-	p, err := platform.init("Chip-8", chip8.DISPLAY_WIDTH, chip8.DISPLAY_HEIGHT, VIDEO_SCALE)
-	if err != .SUCCESS {
+	// Initialize platform.
+	platform_instance, error := platform.init(
+		"Chip-8",
+		chip8.DISPLAY_WIDTH,
+		chip8.DISPLAY_HEIGHT,
+		VIDEO_SCALE,
+	)
+	if error != .SUCCESS {
 		fmt.println("Failed to initialize platform")
 		return
 	}
-	defer platform.destroy(&p)
+	defer platform.destroy(&platform_instance)
 
-	c := chip8.create()
-	defer chip8.destroy(c)
+	// Initialize chip instance.
+	chip_instance := new(chip8.Chip8)
+	defer free(chip_instance)
 
-	success := chip8.load_rom(c, "roms/Brix.ch8")
-	if !success {
+	// Load ROM.
+	ok := chip8.load_rom(chip_instance, "roms/Brix.ch8")
+	if !ok {
+		fmt.println("Failed to load ROM")
 		return
 	}
 
 	target_frame_duration := time.Duration(time.Second) / TARGET_FPS
-
 	running := true
 	for running {
 		frame_start := time.tick_now()
 
+		// Poll events.
 		event: platform.Event
-		for platform.poll_event(&p, &event) {
+		for platform.poll_event(&platform_instance, &event) {
 			#partial switch event.type {
 			case .QUIT:
 				running = false
 			case .KEY_DOWN:
-				chip8.keypad_set_pressed(&c.keypad, u8(event.key), true)
+				chip8.keypad_set_pressed(&chip_instance.keypad, u8(event.key), true)
 			case .KEY_UP:
-				chip8.keypad_set_pressed(&c.keypad, u8(event.key), false)
+				chip8.keypad_set_pressed(&chip_instance.keypad, u8(event.key), false)
 			}
 		}
 
+		// Cycle chip.
 		for _ in 0 ..< CYCLES_PER_FRAME {
-			chip8.cycle(c)
+			chip8.cycle(chip_instance)
 		}
+		chip8.update_timers(chip_instance)
 
-		chip8.update_timers(c)
-
-		err := platform.update(&p, c.display[:])
-		if err != .SUCCESS {
+		// Update platform display buffer.
+		error := platform.update(&platform_instance, chip_instance.display[:])
+		if error != .SUCCESS {
 			fmt.println("Failed to update platform")
 			return
 		}
 
+		// Sleep to maintain target FPS.
 		elapsed := time.tick_diff(frame_start, time.tick_now())
 		if elapsed < target_frame_duration {
 			time.accurate_sleep(target_frame_duration - elapsed)
