@@ -7,7 +7,7 @@ import "vendor:sdl2"
 
 VIDEO_SCALE :: 20
 TARGET_FPS :: 60
-CYCLES_PER_FRAME :: 11
+CYCLES_PER_FRAME :: 9
 
 main :: proc() {
 	if sdl2.Init(sdl2.INIT_VIDEO) != 0 {
@@ -50,7 +50,7 @@ main :: proc() {
 	c := chip8.create()
 	defer chip8.destroy(c)
 
-	success := chip8.load_rom(c, "roms/tetris.ch8")
+	success := chip8.load_rom(c, "roms/Brix.ch8")
 	if !success {
 		return
 	}
@@ -68,17 +68,17 @@ main :: proc() {
 			case sdl2.EventType.QUIT:
 				running = false
 			case sdl2.EventType.KEYDOWN:
-				key, success := chip8.kp_get_mapping(event.key.keysym.sym)
+				key, success := chip8.keypad_get_mapping(event.key.keysym.sym)
 				if !success {
 					continue
 				}
-				chip8.kp_set_pressed(&c.keypad, key, true)
+				chip8.keypad_set_pressed(&c.keypad, key, true)
 			case sdl2.EventType.KEYUP:
-				key, success := chip8.kp_get_mapping(event.key.keysym.sym)
+				key, success := chip8.keypad_get_mapping(event.key.keysym.sym)
 				if !success {
 					continue
 				}
-				chip8.kp_set_pressed(&c.keypad, key, false)
+				chip8.keypad_set_pressed(&c.keypad, key, false)
 			}
 		}
 
@@ -91,7 +91,7 @@ main :: proc() {
 		sdl2.UpdateTexture(
 			texture,
 			nil,
-			rawptr(&c.display[0]),
+			rawptr(raw_data(&c.display)),
 			size_of(c.display[0]) * chip8.DISPLAY_WIDTH,
 		)
 		sdl2.RenderClear(renderer)

@@ -104,7 +104,7 @@ CLS :: proc(c: ^Chip8, op: Opcode) {
 RET :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	if pc, ok := stack_pop(&c.stack); ok {
-		pc_set(&c.pc, pc)
+		program_counter_set(&c.pc, pc)
 	}
 }
 
@@ -112,8 +112,8 @@ RET :: proc(c: ^Chip8, op: Opcode) {
 JP :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_nnn := opcode_nnn(op)
-	pc := address_to_pc(op_nnn)
-	pc_set(&c.pc, pc)
+	pc := program_counter_from_address(op_nnn)
+	program_counter_set(&c.pc, pc)
 }
 
 // Call subroutine at address NNN (0x2NNN - CALL NNN)
@@ -121,149 +121,149 @@ CALL :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	if !stack_push(&c.stack, c.pc) do return
 	op_nnn := opcode_nnn(op)
-	pc := address_to_pc(op_nnn)
-	pc_set(&c.pc, pc)
+	pc := program_counter_from_address(op_nnn)
+	program_counter_set(&c.pc, pc)
 }
 
 // Skip next instruction if Vx equals KK (0x3XKK - SE Vx, KK)
 SE_VX_KK :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
-	vx := reg_get(&c.registers, op_x)
-	if vx == op_kk do pc_advance(&c.pc)
+	vx := registers_get(&c.registers, op_x)
+	if vx == op_kk do program_counter_advance(&c.pc)
 }
 
 // Skip next instruction if Vx does not equal KK (0x4XKK - SNE Vx, KK)
 SNE_VX_KK :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
-	vx := reg_get(&c.registers, op_x)
-	if vx != op_kk do pc_advance(&c.pc)
+	vx := registers_get(&c.registers, op_x)
+	if vx != op_kk do program_counter_advance(&c.pc)
 }
 
 // Skip next instruction if Vx equals Vy (0x5XY0 - SE Vx, Vy)
 SE_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	if vx == vy do pc_advance(&c.pc)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	if vx == vy do program_counter_advance(&c.pc)
 }
 
 // Load value KK into Vx (0x6XKK - LD Vx, KK)
 LD_VX_KK :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
-	reg_set(&c.registers, op_x, op_kk)
+	registers_set(&c.registers, op_x, op_kk)
 }
 
 // Add value KK to Vx (0x7XKK - ADD Vx, KK)
 ADD_VX_KK :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
-	vx := reg_get(&c.registers, op_x)
-	reg_set(&c.registers, op_x, vx + op_kk)
+	vx := registers_get(&c.registers, op_x)
+	registers_set(&c.registers, op_x, vx + op_kk)
 }
 
 // Load value Vy into Vx (0x8XY0 - LD Vx, Vy)
 LD_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vy := reg_get(&c.registers, op_y)
-	reg_set(&c.registers, op_x, vy)
+	vy := registers_get(&c.registers, op_y)
+	registers_set(&c.registers, op_x, vy)
 }
 
 // Bitwise OR Vx with Vy (0x8XY1 - OR Vx, Vy)
 OR_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	reg_set(&c.registers, op_x, vx | vy)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	registers_set(&c.registers, op_x, vx | vy)
 }
 
 // Bitwise AND Vx with Vy (0x8XY2 - AND Vx, Vy)
 AND_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	reg_set(&c.registers, op_x, vx & vy)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	registers_set(&c.registers, op_x, vx & vy)
 }
 
 // Bitwise XOR Vx with Vy (0x8XY3 - XOR Vx, Vy)
 XOR_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	reg_set(&c.registers, op_x, vx ~ vy)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	registers_set(&c.registers, op_x, vx ~ vy)
 }
 
 // Add Vx and Vy (0x8XY4 - ADD Vx, Vy)
 ADD_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
 	result := u16(vx) + u16(vy)
-	reg_set(&c.registers, 0xF, result > 0xFF ? 1 : 0)
-	reg_set(&c.registers, op_x, u8(result & 0xFF))
+	registers_set(&c.registers, 0xF, result > 0xFF ? 1 : 0)
+	registers_set(&c.registers, op_x, u8(result & 0xFF))
 }
 
 // Subtract Vy from Vx (0x8XY5 - SUB Vx, Vy)
 SUB_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	reg_set(&c.registers, 0xF, vx > vy ? 1 : 0)
-	reg_set(&c.registers, op_x, vx - vy)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	registers_set(&c.registers, 0xF, vx > vy ? 1 : 0)
+	registers_set(&c.registers, op_x, vx - vy)
 }
 
 // Shift Vx right by 1 (0x8XY6 - SHR Vx)
 SHR_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	reg_set(&c.registers, 0xF, vx & 1)
-	reg_set(&c.registers, op_x, vx >> 1)
+	vx := registers_get(&c.registers, op_x)
+	registers_set(&c.registers, 0xF, vx & 1)
+	registers_set(&c.registers, op_x, vx >> 1)
 }
 
 // Subtract Vy from Vx (0x8XY7 - SUBN Vx, Vy)
 SUBN_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	reg_set(&c.registers, 0xF, vy > vx ? 1 : 0)
-	reg_set(&c.registers, op_x, vy - vx)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	registers_set(&c.registers, 0xF, vy > vx ? 1 : 0)
+	registers_set(&c.registers, op_x, vy - vx)
 }
 
 // Shift Vx left by 1 (0x8XYE - SHL Vx)
 SHL_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	reg_set(&c.registers, 0xF, (vx & 0x80) >> 7)
-	reg_set(&c.registers, op_x, vx << 1)
+	vx := registers_get(&c.registers, op_x)
+	registers_set(&c.registers, 0xF, (vx & 0x80) >> 7)
+	registers_set(&c.registers, op_x, vx << 1)
 }
 
 // Skip next instruction if Vx does not equal Vy (0x9XY0 - SNE Vx, Vy)
 SNE_VX_VY :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
-	if vx != vy do pc_advance(&c.pc)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
+	if vx != vy do program_counter_advance(&c.pc)
 }
 
 // Load NNN into index register (0xANNN - LD I, NNN)
 LD_I_NNN :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_nnn := opcode_nnn(op)
-	reg_set_index(&c.registers, op_nnn)
+	registers_set_index(&c.registers, op_nnn)
 }
 
 // Jump to NNN + V0 (0xBNNN - JP V0, NNN)
 JP_V0_NNN :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
-	v0 := reg_get(&c.registers, 0)
+	v0 := registers_get(&c.registers, 0)
 	op_nnn := opcode_nnn(op)
-	pc := address_to_pc(op_nnn + Address(v0))
-	pc_set(&c.pc, pc)
+	pc := program_counter_from_address(op_nnn + Address(v0))
+	program_counter_set(&c.pc, pc)
 }
 
 // Set Vx to the result of a random number and KK (0xCKK - RND Vx, KK)
@@ -271,22 +271,22 @@ RND_VX_KK :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	rnd := u8(rand.int_max(256)) // 255 + 1 because n is exclusive.
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
-	reg_set(&c.registers, op_x, rnd & op_kk)
+	registers_set(&c.registers, op_x, rnd & op_kk)
 }
 
 // Draw N bytes starting at memory location I at (Vx, Vy) (0xDXYN - DRW Vx, Vy, N)
 DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x, op_y := opcode_x(op), opcode_y(op)
-	index := reg_get_index(&c.registers)
-	vx, vy := reg_get(&c.registers, op_x), reg_get(&c.registers, op_y)
+	index := registers_get_index(&c.registers)
+	vx, vy := registers_get(&c.registers, op_x), registers_get(&c.registers, op_y)
 	start_x := vx % DISPLAY_WIDTH
 	start_y := vy % DISPLAY_HEIGHT
 
 	collision := false
 
 	for row in 0 ..< opcode_n(op) {
-		sprite_byte, ok := mem_get_byte(&c.memory, index + Address(row))
+		sprite_byte, ok := memory_get_byte(&c.memory, index + Address(row))
 		if !ok do continue
 		for col in 0 ..< 8 {
 			if sprite_byte & (0x80 >> u8(col)) != 0 {
@@ -303,31 +303,31 @@ DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) {
 		}
 	}
 
-	reg_set(&c.registers, 0xF, collision ? 1 : 0)
+	registers_set(&c.registers, 0xF, collision ? 1 : 0)
 }
 
 // Skip next instruction if key with value Vx is pressed (0xEX9E - SKP Vx)
 SKP_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	if kp_get_pressed(&c.keypad, vx) do pc_advance(&c.pc)
+	vx := registers_get(&c.registers, op_x)
+	if keypad_get_pressed(&c.keypad, vx) do program_counter_advance(&c.pc)
 }
 
 // Skip next instruction if key with value Vx is not pressed (0xEXA1 - SKNP Vx)
 SKNP_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	if !kp_get_pressed(&c.keypad, vx) do pc_advance(&c.pc)
+	vx := registers_get(&c.registers, op_x)
+	if !keypad_get_pressed(&c.keypad, vx) do program_counter_advance(&c.pc)
 }
 
 // Load value of delay timer into Vx (0xFX07 - LD Vx, DT)
 LD_VX_DT :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
-	dt := reg_get_dt(&c.registers)
+	dt := registers_get_dt(&c.registers)
 	op_x := opcode_x(op)
-	reg_set(&c.registers, op_x, dt)
+	registers_set(&c.registers, op_x, dt)
 }
 
 // Wait for a key press and store the value of the key in Vx (0xFX0A - LD Vx, K)
@@ -336,79 +336,79 @@ LD_VX_K :: proc(c: ^Chip8, op: Opcode) {
 	for key, i in &c.keypad.keys {
 		if key {
 			op_x := opcode_x(op)
-			reg_set(&c.registers, op_x, u8(i))
+			registers_set(&c.registers, op_x, u8(i))
 			return
 		}
 	}
 	// If no key is pressed, repeat the instruction.
-	pc_return(&c.pc)
+	program_counter_return(&c.pc)
 }
 
 // Load value of Vx into delay timer (0xFX15 - LD DT, Vx)
 LD_DT_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	reg_set_dt(&c.registers, vx)
+	vx := registers_get(&c.registers, op_x)
+	registers_set_dt(&c.registers, vx)
 }
 
 // Load value of Vx into sound timer (0xFX18 - LD ST, Vx)
 LD_ST_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	reg_set_st(&c.registers, vx)
+	vx := registers_get(&c.registers, op_x)
+	registers_set_st(&c.registers, vx)
 }
 
 // Add value of Vx to index register (0xFX1E - ADD I, Vx)
 ADD_I_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	index := reg_get_index(&c.registers)
-	reg_set_index(&c.registers, index + Address(vx))
+	vx := registers_get(&c.registers, op_x)
+	index := registers_get_index(&c.registers)
+	registers_set_index(&c.registers, index + Address(vx))
 }
 
 // Load address of sprite for digit Vx into index register (0xFX29 - LD F, Vx)
 LD_F_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
+	vx := registers_get(&c.registers, op_x)
 	index := FONT_START_ADDRESS + Address(FONT_SIZE * u16(vx))
-	reg_set_index(&c.registers, index)
+	registers_set_index(&c.registers, index)
 }
 
 // Store binary-coded decimal representation of Vx in memory (0xFX33 - LD B, Vx)
 LD_B_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
 	op_x := opcode_x(op)
-	vx := reg_get(&c.registers, op_x)
-	index := reg_get_index(&c.registers)
-	mem_set_byte(&c.memory, index + 2, vx % 10)
+	vx := registers_get(&c.registers, op_x)
+	index := registers_get_index(&c.registers)
+	memory_set_byte(&c.memory, index + 2, vx % 10)
 	vx /= 10
-	mem_set_byte(&c.memory, index + 1, vx % 10)
+	memory_set_byte(&c.memory, index + 1, vx % 10)
 	vx /= 10
-	mem_set_byte(&c.memory, index, vx % 10)
+	memory_set_byte(&c.memory, index, vx % 10)
 }
 
 // Store V0 to Vx in memory starting at location I (0xFX55 - LD [I], Vx)
 LD_I_VX :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
-	index := reg_get_index(&c.registers)
+	index := registers_get_index(&c.registers)
 	op_x := opcode_x(op)
 	for i in 0 ..= op_x {
-		mem_set_byte(&c.memory, index + Address(i), reg_get(&c.registers, i))
+		memory_set_byte(&c.memory, index + Address(i), registers_get(&c.registers, i))
 	}
 }
 
 // Load memory starting at location I into V0 to Vx (0xFX65 - LD Vx, [I])
 LD_VX_I :: proc(c: ^Chip8, op: Opcode) {
 	assert(c != nil)
-	index := reg_get_index(&c.registers)
+	index := registers_get_index(&c.registers)
 	op_x := opcode_x(op)
 	for i in 0 ..= op_x {
-		v, ok := mem_get_byte(&c.memory, index + Address(i))
+		v, ok := memory_get_byte(&c.memory, index + Address(i))
 		if !ok do continue
-		reg_set(&c.registers, i, v)
+		registers_set(&c.registers, i, v)
 	}
 }

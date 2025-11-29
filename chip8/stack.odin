@@ -10,10 +10,10 @@ stack_init :: proc(s: ^Stack) {
 	s^ = Stack{}
 }
 
-stack_push :: proc(s: ^Stack, v: ProgramCounter) -> bool {
+stack_push :: proc(s: ^Stack, value: ProgramCounter) -> bool {
 	assert(s != nil)
 	if stack_is_full(s) do return false
-	s.data[s.pointer] = v
+	s.data[s.pointer] = value
 	s.pointer += 1
 	return true
 }
