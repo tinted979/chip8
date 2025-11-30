@@ -51,7 +51,7 @@ main :: proc() {
 	}
 
 	// Load ROM.
-	if error := chip8.load_rom(chip_instance, "roms/Brix.ch8"); error != .None {
+	if error := chip8.load_rom(chip_instance, "roms/tetris.ch8"); error != .None {
 		fmt.println("Failed to load ROM")
 		return
 	}
@@ -92,7 +92,10 @@ main :: proc() {
 		chip8.update_timers(chip_instance)
 
 		// Update platform display buffer.
-		error := platform.update(&platform_instance, chip_instance.display[:])
+		error := platform.update(
+			&platform_instance,
+			chip8.display_get_data(&chip_instance.display),
+		)
 		if error != .SUCCESS {
 			fmt.println("Failed to update platform")
 			return

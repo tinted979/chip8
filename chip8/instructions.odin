@@ -107,9 +107,7 @@ router_0xF :: proc(c: ^Chip8, op: Opcode) -> Error {
 // Clear the display (0x00E0 - CLS)
 CLS :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	c.display = [?]u32 {
-		0 ..< len(c.display) = 0,
-	}
+	display_clear(&c.display)
 	return .None
 }
 
@@ -283,6 +281,7 @@ JP_V0_NNN :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	v0 := registers_get(&c.registers, .V0)
 	pc := pc_from_address(op.nnn + Address(v0))
+	expect(pc < MEMORY_SIZE, .InvalidAddress) or_return
 	pc_set(&c.program_counter, pc)
 	return .None
 }
@@ -303,26 +302,19 @@ DRW_VX_VY_N :: proc(c: ^Chip8, op: Opcode) -> Error {
 	vy := registers_get(&c.registers, op.y)
 	start_x := vx % DISPLAY_WIDTH
 	start_y := vy % DISPLAY_HEIGHT
-
 	collision := false
-
+	expect(index + Address(op.n) <= MEMORY_SIZE, .InvalidAddress) or_return
 	for row in 0 ..< op.n {
 		sprite_byte := memory_get_byte(&c.memory, index + Address(row)) or_continue
 		for col in 0 ..< 8 {
 			if sprite_byte & (0x80 >> u8(col)) != 0 {
 				x := (start_x + u8(col)) % DISPLAY_WIDTH
 				y := (start_y + u8(row)) % DISPLAY_HEIGHT
-				idx := u16(y) * DISPLAY_WIDTH + u16(x)
-
-				if c.display[idx] == 0xFFFFFFFF {
-					collision = true
-				}
-
-				c.display[idx] ~= 0xFFFFFFFF
+				pixel_collision := display_toggle_pixel(&c.display, x, y) or_continue
+				if pixel_collision do collision = true
 			}
 		}
 	}
-
 	registers_set(&c.registers, .VF, collision ? 1 : 0)
 	return .None
 }
@@ -406,6 +398,7 @@ LD_B_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	vx := registers_get(&c.registers, op.x)
 	index := registers_get_index(&c.registers)
+	expect(index + 2 <= MEMORY_SIZE, .InvalidAddress) or_return
 	memory_set_byte(&c.memory, index + 2, vx % 10) or_return
 	vx /= 10
 	memory_set_byte(&c.memory, index + 1, vx % 10) or_return
@@ -418,6 +411,7 @@ LD_B_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 LD_I_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	index := registers_get_index(&c.registers)
+	expect(index + Address(op.x) <= MEMORY_SIZE, .InvalidAddress) or_return
 	for register in Register.V0 ..= op.x {
 		value := registers_get(&c.registers, register)
 		memory_set_byte(&c.memory, index + Address(register_to_u8(register)), value) or_return
@@ -429,6 +423,7 @@ LD_I_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 LD_VX_I :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	index := registers_get_index(&c.registers)
+	expect(index + Address(op.x) <= MEMORY_SIZE, .InvalidAddress) or_return
 	for register in Register.V0 ..= op.x {
 		value := memory_get_byte(&c.memory, index + Address(register_to_u8(register))) or_continue
 		registers_set(&c.registers, register, value)

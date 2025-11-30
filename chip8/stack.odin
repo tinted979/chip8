@@ -12,27 +12,15 @@ stack_init :: proc(stack: ^Stack) {
 
 stack_push :: proc(stack: ^Stack, value: PC) -> Error {
 	assert(stack != nil)
-	if is_full(stack) do return .StackOverflow
+	expect(stack.pointer < STACK_SIZE, .StackOverflow) or_return
 	stack.data[stack.pointer] = value
 	stack.pointer += 1
-	return .None
+	return error_none()
 }
 
-stack_pop :: proc(stack: ^Stack) -> (PC, Error) {
+stack_pop :: proc(stack: ^Stack) -> (result: PC, error: Error) {
 	assert(stack != nil)
-	if is_empty(stack) do return 0, .StackUnderflow
+	expect(stack.pointer > 0, .StackUnderflow) or_return
 	stack.pointer -= 1
-	return stack.data[stack.pointer], .None
-}
-
-@(private)
-is_empty :: proc(stack: ^Stack) -> bool {
-	assert(stack != nil)
-	return stack.pointer <= 0
-}
-
-@(private)
-is_full :: proc(stack: ^Stack) -> bool {
-	assert(stack != nil)
-	return stack.pointer >= STACK_SIZE
+	return stack.data[stack.pointer], error_none()
 }

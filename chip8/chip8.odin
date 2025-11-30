@@ -8,14 +8,13 @@ Chip8 :: struct {
 	stack:           Stack,
 	memory:          Memory,
 	registers:       Registers,
-	display:         [DISPLAY_WIDTH * DISPLAY_HEIGHT]u32,
+	display:         Display,
 	rom_loaded:      bool,
 }
 
 cycle :: proc(c: ^Chip8) -> Error {
 	assert(c != nil)
-
-	if !c.rom_loaded do return .RomNotLoaded
+	expect(c.rom_loaded, .RomNotLoaded) or_return
 
 	raw_opcode := memory_get_word(&c.memory, pc_to_address(c.program_counter)) or_return
 	opcode := opcode_parse(raw_opcode)
@@ -40,6 +39,7 @@ reset :: proc(c: ^Chip8) {
 	registers_init(&c.registers)
 	memory_init(&c.memory)
 	keypad_init(&c.keypad)
+	display_init(&c.display)
 }
 
 load_rom :: proc(c: ^Chip8, path: string) -> Error {
@@ -47,11 +47,10 @@ load_rom :: proc(c: ^Chip8, path: string) -> Error {
 	reset(c)
 
 	data, ok := os.read_entire_file(path)
-	if !ok do return .RomLoadFailed
+	expect(ok, .RomLoadFailed) or_return
 	defer delete(data)
 
-	if len(data) > int(MEMORY_SIZE - PROGRAM_START_ADDRESS) do return .RomTooLarge
-
+	expect(len(data) <= int(MEMORY_SIZE - PROGRAM_START_ADDRESS), .RomTooLarge) or_return
 	for b, i in data {
 		address := PROGRAM_START_ADDRESS + Address(i)
 		memory_set_byte(&c.memory, address, b) or_return
