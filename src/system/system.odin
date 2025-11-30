@@ -14,7 +14,7 @@ System :: struct {
 	graphics_buffer: [shared.DISPLAY_SIZE]u32,
 }
 
-create :: proc() -> (system: ^System, error: Error) {
+create :: proc() -> (system: ^System, error: shared.Error) {
 	system = new(System)
 	system.config = default_config()
 	if !init_window(system) do return system, .FailedToInitializeWindow
@@ -23,7 +23,7 @@ create :: proc() -> (system: ^System, error: Error) {
 	return system, .None
 }
 
-destroy :: proc(system: ^System) -> Error {
+destroy :: proc(system: ^System) -> shared.Error {
 	clear_config(&system.config)
 	sdl2.DestroyWindow(system.window)
 	sdl2.DestroyRenderer(system.renderer)
@@ -51,7 +51,7 @@ poll_events :: proc() -> (event: Event, event_found: bool) {
 	return event, false
 }
 
-render :: proc(system: ^System, buffer: []bool) -> Error {
+render :: proc(system: ^System, buffer: []bool) -> shared.Error {
 	for pixel, i in buffer {
 		system.graphics_buffer[i] = pixel ? 0xFFFFFFFF : 0x00000000
 	}
@@ -100,40 +100,40 @@ init_texture :: proc(system: ^System) -> bool {
 }
 
 @(private)
-map_sdl_key :: proc(k: sdl2.Keycode) -> (u8, bool) {
+map_sdl_key :: proc(k: sdl2.Keycode) -> (shared.Key, bool) {
 	#partial switch k {
 	case .X:
-		return 0x0, true
+		return shared.Key.Key0, true
 	case .NUM1:
-		return 0x1, true
+		return shared.Key.Key1, true
 	case .NUM2:
-		return 0x2, true
+		return shared.Key.Key2, true
 	case .NUM3:
-		return 0x3, true
+		return shared.Key.Key3, true
 	case .Q:
-		return 0x4, true
+		return shared.Key.Key4, true
 	case .W:
-		return 0x5, true
+		return shared.Key.Key5, true
 	case .E:
-		return 0x6, true
+		return shared.Key.Key6, true
 	case .A:
-		return 0x7, true
+		return shared.Key.Key7, true
 	case .S:
-		return 0x8, true
+		return shared.Key.Key8, true
 	case .D:
-		return 0x9, true
+		return shared.Key.Key9, true
 	case .Z:
-		return 0xA, true
+		return shared.Key.KeyA, true
 	case .C:
-		return 0xB, true
+		return shared.Key.KeyB, true
 	case .NUM4:
-		return 0xC, true
+		return shared.Key.KeyC, true
 	case .R:
-		return 0xD, true
+		return shared.Key.KeyD, true
 	case .F:
-		return 0xE, true
+		return shared.Key.KeyE, true
 	case .V:
-		return 0xF, true
+		return shared.Key.KeyF, true
 	}
-	return 0, false
+	return {}, false
 }

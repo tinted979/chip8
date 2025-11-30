@@ -1,4 +1,4 @@
-package emulator
+package shared
 
 Error :: enum {
 	None,
@@ -8,4 +8,7 @@ Error :: enum {
 	StackUnderflow,
 	InvalidRegisterValue,
 	InvalidKeyCode,
+	FailedToInitializeWindow,
+	FailedToInitializeRenderer,
+	FailedToInitializeTexture,
 }

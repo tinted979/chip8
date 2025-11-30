@@ -1,5 +1,6 @@
 package emulator
 
+import "../shared"
 
 Instruction :: union {
 	Null,
@@ -207,7 +208,12 @@ Random :: struct {
 	mask: u8,
 }
 
-decode_instruction :: proc(raw_instruction: u16) -> (instruction: Instruction, error: Error) {
+decode_instruction :: proc(
+	raw_instruction: u16,
+) -> (
+	instruction: Instruction,
+	error: shared.Error,
+) {
 	nibble := (raw_instruction & 0xF000) >> 12
 	x := u8((raw_instruction & 0x0F00) >> 8)
 	y := u8((raw_instruction & 0x00F0) >> 4)

@@ -10,14 +10,14 @@ init_memory :: proc(memory: ^Memory) {
 	memory^ = {}
 }
 
-read_byte :: proc(memory: ^Memory, address: u16) -> (u8, Error) {
+read_byte :: proc(memory: ^Memory, address: u16) -> (u8, shared.Error) {
 	if address >= shared.MEMORY_SIZE {
 		return 0, .MemoryOutOfBounds
 	}
 	return memory.bytes[address], .None
 }
 
-write_byte :: proc(memory: ^Memory, address: u16, value: u8) -> Error {
+write_byte :: proc(memory: ^Memory, address: u16, value: u8) -> shared.Error {
 	if address >= shared.MEMORY_SIZE {
 		return .MemoryOutOfBounds
 	}
@@ -25,7 +25,7 @@ write_byte :: proc(memory: ^Memory, address: u16, value: u8) -> Error {
 	return .None
 }
 
-read_word :: proc(memory: ^Memory, address: u16) -> (u16, Error) {
+read_word :: proc(memory: ^Memory, address: u16) -> (u16, shared.Error) {
 	if address + 1 >= shared.MEMORY_SIZE {
 		return 0, .MemoryOutOfBounds
 	}

@@ -11,7 +11,7 @@ init_stack :: proc(stack: ^Stack) {
 	stack^ = {}
 }
 
-push_stack :: proc(stack: ^Stack, value: u16) -> Error {
+push_stack :: proc(stack: ^Stack, value: u16) -> shared.Error {
 	if stack.pointer >= shared.STACK_SIZE {
 		return .StackOverflow
 	}
@@ -20,7 +20,7 @@ push_stack :: proc(stack: ^Stack, value: u16) -> Error {
 	return .None
 }
 
-pop_stack :: proc(stack: ^Stack) -> (value: u16, error: Error) {
+pop_stack :: proc(stack: ^Stack) -> (value: u16, error: shared.Error) {
 	if stack.pointer == 0 {
 		return 0, .StackUnderflow
 	}

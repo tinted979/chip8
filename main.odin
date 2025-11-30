@@ -3,10 +3,11 @@ package chip8
 import "core:fmt"
 import "core:time"
 
-import "core/emulator"
-import "core/parser"
-import "core/shared"
-import "core/system"
+import "src/emulator"
+import "src/parser"
+import "src/shared"
+import "src/system"
+
 
 ROM_PATH :: "roms/tetris.ch8"
 

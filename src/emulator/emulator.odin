@@ -14,7 +14,7 @@ Emulator :: struct {
 	keypad:          Keypad,
 }
 
-create :: proc() -> (emulator: ^Emulator, error: Error) {
+create :: proc() -> (emulator: ^Emulator, error: shared.Error) {
 	emulator = new(Emulator)
 	emulator.program_counter = shared.MEMORY_ROM_START_ADDRESS
 	init_display(&emulator.display)
@@ -27,16 +27,16 @@ create :: proc() -> (emulator: ^Emulator, error: Error) {
 	return emulator, .None
 }
 
-destroy :: proc(emulator: ^Emulator) -> Error {
+destroy :: proc(emulator: ^Emulator) -> shared.Error {
 	free(emulator)
 	return .None
 }
 
-load_rom :: proc(data: []byte) -> (error: Error) {
+load_rom :: proc(data: []byte) -> (error: shared.Error) {
 	return .None
 }
 
-cycle :: proc(emulator: ^Emulator) -> Error {
+cycle :: proc(emulator: ^Emulator) -> shared.Error {
 	raw_instruction := fetch_instruction(emulator) or_return
 	instruction := decode_instruction(raw_instruction) or_return
 	execute_instruction(emulator, instruction) or_return
@@ -52,20 +52,19 @@ get_display_buffer :: proc(emulator: ^Emulator) -> []bool {
 	return emulator.display.data[:]
 }
 
-set_key_state :: proc(emulator: ^Emulator, key: u8, pressed: bool) -> Error {
-	key := key_from_u8(key) or_return
+set_key_state :: proc(emulator: ^Emulator, key: shared.Key, pressed: bool) -> shared.Error {
 	set_pressed(&emulator.keypad, key, pressed)
 	return .None
 }
 
 @(private)
-fetch_instruction :: proc(emulator: ^Emulator) -> (instruction: u16, error: Error) {
+fetch_instruction :: proc(emulator: ^Emulator) -> (instruction: u16, error: shared.Error) {
 	instruction = read_word(&emulator.memory, emulator.program_counter) or_return
 	emulator.program_counter += 2
 	return instruction, .None
 }
 
 @(private)
-execute_instruction :: proc(emulator: ^Emulator, instruction: Instruction) -> Error {
+execute_instruction :: proc(emulator: ^Emulator, instruction: Instruction) -> shared.Error {
 	return .None
 }

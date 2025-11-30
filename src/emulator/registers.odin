@@ -45,7 +45,7 @@ register_to_u8 :: proc(r: Register) -> u8 {
 	return u8(r)
 }
 
-register_from_u8 :: proc(value: u8) -> (Register, Error) {
+register_from_u8 :: proc(value: u8) -> (Register, shared.Error) {
 	if value >= shared.REGISTERS_SIZE {
 		return {}, .InvalidRegisterValue
 	}

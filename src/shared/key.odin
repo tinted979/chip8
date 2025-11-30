@@ -1,6 +1,4 @@
-package emulator
-
-import "../shared"
+package shared
 
 Key :: enum u8 {
 	Key0 = 0x0,
@@ -21,28 +19,12 @@ Key :: enum u8 {
 	KeyF = 0xF,
 }
 
-Keypad :: struct {
-	data: [shared.KEYPAD_SIZE]bool,
-}
-
-init_keypad :: proc(k: ^Keypad) {
-	k.data = {}
-}
-
-is_pressed :: proc(k: ^Keypad, key: Key) -> bool {
-	return k.data[key]
-}
-
-set_pressed :: proc(k: ^Keypad, key: Key, pressed: bool) {
-	k.data[key] = pressed
-}
-
 key_to_u8 :: proc(key: Key) -> u8 {
 	return u8(key)
 }
 
 key_from_u8 :: proc(value: u8) -> (Key, Error) {
-	if value >= shared.KEYPAD_SIZE {
+	if value >= KEYPAD_SIZE {
 		return {}, .InvalidKeyCode
 	}
 	return Key(value), .None
