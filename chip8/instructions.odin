@@ -117,7 +117,7 @@ CLS :: proc(c: ^Chip8, op: Opcode) -> Error {
 RET :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	pc := stack_pop(&c.stack) or_return
-	program_counter_set(&c.pc, pc)
+	pc_set(&c.program_counter, pc)
 	return .None
 }
 
@@ -125,18 +125,18 @@ RET :: proc(c: ^Chip8, op: Opcode) -> Error {
 JP :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_nnn := opcode_nnn(op)
-	pc := program_counter_from_address(op_nnn)
-	program_counter_set(&c.pc, pc)
+	pc := pc_from_address(op_nnn)
+	pc_set(&c.program_counter, pc)
 	return .None
 }
 
 // Call subroutine at address NNN (0x2NNN - CALL NNN)
 CALL :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
-	stack_push(&c.stack, c.pc) or_return
+	stack_push(&c.stack, c.program_counter) or_return
 	op_nnn := opcode_nnn(op)
-	pc := program_counter_from_address(op_nnn)
-	program_counter_set(&c.pc, pc)
+	pc := pc_from_address(op_nnn)
+	pc_set(&c.program_counter, pc)
 	return .None
 }
 
@@ -145,7 +145,7 @@ SE_VX_KK :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
 	vx := registers_get(&c.registers, op_x)
-	if vx == op_kk do program_counter_advance(&c.pc)
+	if vx == op_kk do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -154,7 +154,7 @@ SNE_VX_KK :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	op_x, op_kk := opcode_x(op), opcode_kk(op)
 	vx := registers_get(&c.registers, op_x)
-	if vx != op_kk do program_counter_advance(&c.pc)
+	if vx != op_kk do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -164,7 +164,7 @@ SE_VX_VY :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x, op_y := opcode_x(op), opcode_y(op)
 	vx := registers_get(&c.registers, op_x)
 	vy := registers_get(&c.registers, op_y)
-	if vx == vy do program_counter_advance(&c.pc)
+	if vx == vy do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -284,7 +284,7 @@ SNE_VX_VY :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x, op_y := opcode_x(op), opcode_y(op)
 	vx := registers_get(&c.registers, op_x)
 	vy := registers_get(&c.registers, op_y)
-	if vx != vy do program_counter_advance(&c.pc)
+	if vx != vy do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -301,8 +301,8 @@ JP_V0_NNN :: proc(c: ^Chip8, op: Opcode) -> Error {
 	assert(c != nil)
 	v0 := registers_get(&c.registers, .V0)
 	op_nnn := opcode_nnn(op)
-	pc := program_counter_from_address(op_nnn + Address(v0))
-	program_counter_set(&c.pc, pc)
+	pc := pc_from_address(op_nnn + Address(v0))
+	pc_set(&c.program_counter, pc)
 	return .None
 }
 
@@ -354,7 +354,7 @@ SKP_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x)
 	pressed := keypad_get_pressed(&c.keypad, vx) or_return
-	if pressed do program_counter_advance(&c.pc)
+	if pressed do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -364,7 +364,7 @@ SKNP_VX :: proc(c: ^Chip8, op: Opcode) -> Error {
 	op_x := opcode_x(op)
 	vx := registers_get(&c.registers, op_x)
 	pressed := keypad_get_pressed(&c.keypad, vx) or_return
-	if !pressed do program_counter_advance(&c.pc)
+	if !pressed do pc_advance(&c.program_counter)
 	return .None
 }
 
@@ -388,7 +388,7 @@ LD_VX_K :: proc(c: ^Chip8, op: Opcode) -> Error {
 		}
 	}
 	// If no key is pressed, repeat the instruction.
-	program_counter_return(&c.pc)
+	pc_return(&c.program_counter)
 	return .None
 }
 

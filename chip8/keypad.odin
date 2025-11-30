@@ -4,10 +4,9 @@ Keypad :: struct {
 	keys: [KEY_COUNT]bool,
 }
 
-keypad_init :: proc(k: ^Keypad) -> Error {
+keypad_init :: proc(k: ^Keypad) {
 	assert(k != nil)
-	keypad_set_all_pressed(k, false) or_return
-	return .None
+	keypad_set_all_pressed(k, false)
 }
 
 keypad_get_pressed :: proc(k: ^Keypad, key: u8) -> (result: bool, error: Error) {
@@ -23,12 +22,11 @@ keypad_set_pressed :: proc(k: ^Keypad, key: u8, pressed: bool) -> Error {
 	return .None
 }
 
-keypad_set_all_pressed :: proc(k: ^Keypad, pressed: bool) -> Error {
+keypad_set_all_pressed :: proc(k: ^Keypad, pressed: bool) {
 	assert(k != nil)
 	for &key in k.keys {
 		key = pressed
 	}
-	return .None
 }
 
 keypad_is_key_valid :: proc(key: u8) -> Error {

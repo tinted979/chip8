@@ -45,6 +45,11 @@ main :: proc() {
 	chip_instance := new(chip8.Chip8)
 	defer free(chip_instance)
 
+	if error := chip8.load_fontset(chip_instance); error != .None {
+		fmt.println("Failed to load fontset")
+		return
+	}
+
 	// Load ROM.
 	if error := chip8.load_rom(chip_instance, "roms/Brix.ch8"); error != .None {
 		fmt.println("Failed to load ROM")
@@ -84,10 +89,7 @@ main :: proc() {
 				return
 			}
 		}
-		if error := chip8.update_timers(chip_instance); error != .None {
-			fmt.println("Failed to update timers")
-			return
-		}
+		chip8.update_timers(chip_instance)
 
 		// Update platform display buffer.
 		error := platform.update(&platform_instance, chip_instance.display[:])

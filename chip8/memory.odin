@@ -4,10 +4,9 @@ Memory :: struct {
 	data: [MEMORY_SIZE]u8,
 }
 
-memory_init :: proc(m: ^Memory) -> Error {
+memory_init :: proc(m: ^Memory) {
 	assert(m != nil)
 	m^ = Memory{}
-	return .None
 }
 
 memory_get_byte :: proc(m: ^Memory, address: Address) -> (result: u8, error: Error) {

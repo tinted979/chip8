@@ -3,13 +3,13 @@ package chip8
 import "core:os"
 
 Chip8 :: struct {
-	pc:         ProgramCounter,
-	keypad:     Keypad,
-	stack:      Stack,
-	memory:     Memory,
-	registers:  Registers,
-	display:    [DISPLAY_WIDTH * DISPLAY_HEIGHT]u32,
-	rom_loaded: bool,
+	program_counter: PC,
+	keypad:          Keypad,
+	stack:           Stack,
+	memory:          Memory,
+	registers:       Registers,
+	display:         [DISPLAY_WIDTH * DISPLAY_HEIGHT]u32,
+	rom_loaded:      bool,
 }
 
 cycle :: proc(c: ^Chip8) -> Error {
@@ -17,32 +17,29 @@ cycle :: proc(c: ^Chip8) -> Error {
 
 	if !c.rom_loaded do return .RomNotLoaded
 
-	raw_opcode := memory_get_word(&c.memory, program_counter_to_address(c.pc)) or_return
+	raw_opcode := memory_get_word(&c.memory, pc_to_address(c.program_counter)) or_return
 	opcode := Opcode(raw_opcode)
 
-	program_counter_advance(&c.pc)
+	pc_advance(&c.program_counter)
 	INSTRUCTIONS[opcode_category(opcode)](c, opcode) or_return
 
 	return .None
 }
 
-update_timers :: proc(c: ^Chip8) -> Error {
+update_timers :: proc(c: ^Chip8) {
 	assert(c != nil)
 	timer_decrement(&c.registers.delay_timer)
 	timer_decrement(&c.registers.sound_timer)
-	return .None
 }
 
-reset :: proc(c: ^Chip8) -> Error {
+reset :: proc(c: ^Chip8) {
 	assert(c != nil)
 	c^ = Chip8{}
-	program_counter_set(&c.pc, program_counter_from_address(PROGRAM_START_ADDRESS))
+	pc_set(&c.program_counter, pc_from_address(PROGRAM_START_ADDRESS))
 	stack_init(&c.stack)
 	registers_init(&c.registers)
-	memory_init(&c.memory) or_return
-	keypad_init(&c.keypad) or_return
-	load_fontset(c) or_return
-	return .None
+	memory_init(&c.memory)
+	keypad_init(&c.keypad)
 }
 
 load_rom :: proc(c: ^Chip8, path: string) -> Error {
