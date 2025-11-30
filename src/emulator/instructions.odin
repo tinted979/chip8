@@ -295,5 +295,5 @@ decode_instruction :: proc(
 			return LoadRegisters{vx = x}, .None
 		}
 	}
-	return Null{}, .InvalidInstruction
+	return Null{}, .None
 }

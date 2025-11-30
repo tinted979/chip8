@@ -11,4 +11,5 @@ Error :: enum {
 	FailedToInitializeWindow,
 	FailedToInitializeRenderer,
 	FailedToInitializeTexture,
+	FileNotFound,
 }

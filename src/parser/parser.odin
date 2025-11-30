@@ -1,7 +1,14 @@
 package parser
 
 import "core:fmt"
+import "core:os"
 
-parse_rom_file :: proc(path: string) -> (data: []byte, error: Error) {
+import "../shared"
+
+parse_rom_file :: proc(path: string) -> ([]byte, shared.Error) {
+	data, ok := os.read_entire_file(path)
+	if !ok {
+		return nil, .FileNotFound
+	}
 	return data, .None
 }

@@ -35,8 +35,9 @@ main :: proc() {
 		fmt.println("Parser Error: ", parser_error)
 		return
 	}
+	defer delete(rom_data)
 
-	if emulator_error = emulator.load_rom(rom_data); emulator_error != .None {
+	if emulator_error = emulator.load_rom(emulator_instance, rom_data); emulator_error != .None {
 		fmt.println("Emulator Error: ", emulator_error)
 		return
 	}

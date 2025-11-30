@@ -7,7 +7,7 @@ Display :: struct {
 }
 
 init_display :: proc(display: ^Display) {
-	display^ = {}
+	display.data = {}
 }
 
 toggle_pixel :: proc(display: ^Display, x, y: u8) {
