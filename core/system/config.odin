@@ -1,5 +1,7 @@
 package system
 
+import "../shared"
+
 Config :: struct {
 	window_title:  string,
 	window_width:  uint,
@@ -10,11 +12,11 @@ Config :: struct {
 
 default_config :: proc() -> Config {
 	return Config {
-		window_title = "Chip8",
-		window_width = 64,
-		window_height = 32,
-		display_scale = 10,
-		target_fps = 60,
+		window_title = shared.DEFAULT_WINDOW_TITLE,
+		window_width = shared.DISPLAY_WIDTH,
+		window_height = shared.DISPLAY_HEIGHT,
+		display_scale = shared.DEFAULT_DISPLAY_SCALE,
+		target_fps = shared.DEFAULT_TARGET_FPS,
 	}
 }
 
