@@ -18,10 +18,10 @@ cycle :: proc(c: ^Chip8) -> Error {
 	if !c.rom_loaded do return .RomNotLoaded
 
 	raw_opcode := memory_get_word(&c.memory, pc_to_address(c.program_counter)) or_return
-	opcode := Opcode(raw_opcode)
+	opcode := opcode_parse(raw_opcode)
 
 	pc_advance(&c.program_counter)
-	INSTRUCTIONS[opcode_category(opcode)](c, opcode) or_return
+	INSTRUCTIONS[opcode.category](c, opcode) or_return
 
 	return .None
 }

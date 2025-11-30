@@ -28,32 +28,32 @@ Registers :: struct {
 	registers:      [REGISTER_COUNT]u8,
 }
 
-registers_init :: proc(r: ^Registers) {
-	assert(r != nil)
-	r^ = Registers{}
-	timer_init(&r.delay_timer)
-	timer_init(&r.sound_timer)
+registers_init :: proc(registers: ^Registers) {
+	assert(registers != nil)
+	registers^ = Registers{}
+	timer_init(&registers.delay_timer)
+	timer_init(&registers.sound_timer)
 }
 
-registers_get :: proc(r: ^Registers, register: Register) -> u8 {
-	assert(r != nil)
-	return r.registers[register]
+registers_get :: proc(registers: ^Registers, register: Register) -> u8 {
+	assert(registers != nil)
+	return registers.registers[register]
 }
 
-registers_set :: proc(r: ^Registers, register: Register, value: u8) {
-	assert(r != nil)
-	r.registers[register] = value
+registers_set :: proc(registers: ^Registers, register: Register, value: u8) {
+	assert(registers != nil)
+	registers.registers[register] = value
 }
 
-registers_get_index :: proc(r: ^Registers) -> Address {
-	assert(r != nil)
-	return r.index_register
+registers_get_index :: proc(registers: ^Registers) -> Address {
+	assert(registers != nil)
+	return registers.index_register
 }
 
-registers_set_index :: proc(r: ^Registers, value: Address) -> Error {
-	assert(r != nil)
+registers_set_index :: proc(registers: ^Registers, value: Address) -> Error {
+	assert(registers != nil)
 	address_is_valid(value) or_return
-	r.index_register = value
+	registers.index_register = value
 	return .None
 }
 
