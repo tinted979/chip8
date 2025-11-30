@@ -1,13 +1,14 @@
 package chip8
 
 import "core:fmt"
+import "core:time"
 
 import "core/emulator"
 import "core/parser"
+import "core/shared"
 import "core/system"
 
 ROM_PATH :: "roms/tetris.ch8"
-CYCLES_PER_FRAME :: 11
 
 main :: proc() {
 	fmt.println("Starting...")
@@ -39,8 +40,11 @@ main :: proc() {
 		return
 	}
 
+	target_frame_duration := time.Duration(time.Second) / shared.DEFAULT_TARGET_FPS
 	running := true
 	for running {
+		frame_start := time.tick_now()
+
 		for {
 			event, event_found := system.poll_events()
 			if !event_found do break
@@ -50,19 +54,36 @@ main :: proc() {
 				running = false
 				break
 			case system.EventKey:
-				if e.pressed {
-					fmt.println("Key pressed: ", e.key)
-				} else {
-					fmt.println("Key released: ", e.key)
+				if emulator_error = emulator.set_key_state(emulator_instance, e.key, e.pressed);
+				   emulator_error != .None {
+					fmt.println("Emulator Error: ", emulator_error)
+					running = false
+					break
 				}
 			}
 		}
+
+		for _ in 0 ..< shared.CYCLES_PER_FRAME {
+			if emulator_error = emulator.cycle(emulator_instance); emulator_error != .None {
+				fmt.println("Emulator Error: ", emulator_error)
+				running = false
+				break
+			}
+		}
+		emulator.update_timers(emulator_instance)
 
 		if system_error = system.render(
 			system_instance,
 			emulator.get_display_buffer(emulator_instance),
 		); system_error != .None {
-			fmt.println("System Error: ", system_error); break
+			fmt.println("System Error: ", system_error)
+			running = false
+			break
+		}
+
+		elapsed := time.tick_diff(frame_start, time.tick_now())
+		if elapsed < target_frame_duration {
+			time.accurate_sleep(target_frame_duration - elapsed)
 		}
 	}
 }
